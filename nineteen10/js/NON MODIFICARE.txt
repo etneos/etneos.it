@@ -1,0 +1,5 @@
+DESKTOP : 
+Il file nineteen10.js è quello offuscato online, 
+proviene dal file nineteen10_dec.js che quindi non dovrà mai essere modificato.
+
+MOBILE :
