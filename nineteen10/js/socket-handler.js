@@ -5,8 +5,8 @@
 
 // Configurazione del server
 //const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
-//const BACKEND_URL = 'https://nineteen10-backend.onrender.com';
-const BACKEND_URL = 'https://etneos-nineteen10.onrender.com';
+const BACKEND_URL = 'https://nineteen10-backend.onrender.com';
+//const BACKEND_URL = 'https://etneos-nineteen10.onrender.com';
 
 // Variabili globali
 let socket;
