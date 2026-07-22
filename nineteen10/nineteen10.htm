@@ -15,9 +15,16 @@
   window.addEventListener('load', redirectToMobile);
   </script> 
   <!--  <script src="js/nineteen10_dec.js" ></script> -->
+  <!-- Socket.io client library -->
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  
+  <!-- Scripts del gioco -->
   <script src="js/nineteen10.js" ></script>
   <script src="js/seldes.js"></script> 
-  <script src="js/tog2.js"></script>       
+  <script src="js/tog2.js"></script>
+  
+  <!-- Socket.io handler per connessione al server multiplayer -->
+  <script src="js/socket-handler.js"></script>
 </head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-HMJYLJ4F94"></script>
@@ -30,120 +37,223 @@
 </script>   
 <body class="bodysfo"  onload="init()" >   
 <div class="container">
-             
-  <table height="100%" width="100%" style="margin : 0 auto;">
-    <tr>        
-        <td align="center" width="15%" id="lgtd"  style="position :absolute;">
-          <br><br><br>
-            <div id="Player1" >                      
-            <img name="pl2_1" class="retro" /><br><br>
-            <img name="pl2_2" class="retro" /><br><br>
-            <img name="pl2_3" class="retro" /><br><br>
-            <img name="pl2_4" class="retro" /><br><br>
-            <div id="LG" class="plname">&beta;eta</div>
-          </div>   
-        </td>              
-        <td align="center" width="70%" >  
-            <table height="100%" width="100%">
-              <tr>                              
-                <td  height="10%" id="gutd"> <!-- quì tiro su, da 20 a 10-->                        
-                   <div id="Player2"> 
-                          <input type="button" value="R E G O L E" onclick="toggle2()" id="regole">
-                         
-                           <div id="overlay2" style="display: none">                         
-                            <img id="regoldoc" alt="" />
-                          </div>                    
-                      <img name="pl3_1" class="retro" style="margin-left: 20%;"/> &ensp;                       
-                      <img name="pl3_2" class="retro" />  &ensp;
-                      <img name="pl3_3" class="retro" />  &ensp;
-                      <img name="pl3_4" class="retro" />  
-                      <a id="GU" class="plname">&lambda;amda</a>                    
-                 </div>
-           <!--      <div id="GU" class="plname">&lambda;amda</div> -->
+  
+  <!-- Status connessione multiplayer -->
+  <div id="connection-status" style="position: fixed; top: 10px; right: 10px; padding: 10px; background: #f0f0f0; border-radius: 5px; font-weight: bold; z-index: 100;">
+    🔴 Disconnesso
+  </div>
+  
+  <!-- Pannello Join/Start Game (mostra prima di iniziare) -->
+  <div id="game-setup-panel" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.3); z-index: 1000; text-align: center; display: block;">
+    <h2>🎮 Nineteen10 - Multiplayer</h2>
+    
+    <div style="margin: 20px 0;">
+      <label for="player-name">Il tuo nome:</label><br><br>
+      <input type="text" id="player-name" placeholder="Inserisci il tuo nome" style="padding: 10px; width: 250px; font-size: 16px;">
+    </div>
+    
+    <div style="margin: 20px 0;">
+      <label for="room-id">Codice stanza (opzionale):</label><br><br>
+      <input type="text" id="room-id" placeholder="Lascia vuoto per crearne una nuova" style="padding: 10px; width: 250px; font-size: 16px;">
+    </div>
+    
+    <div style="margin: 20px 0;">
+      <button id="join-button" onclick="handleJoinGame()" style="padding: 12px 30px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        ✅ Unisciti al Gioco
+      </button>
+    </div>
+    
+    <div id="players-waiting" style="margin: 20px 0; min-height: 50px;">
+      <p>In attesa di giocatori...</p>
+    </div>
+    
+    <div style="margin: 20px 0;">
+      <button id="start-button" onclick="startGame()" disabled style="padding: 12px 30px; font-size: 16px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer; opacity: 0.5;">
+        🎯 Inizia Partita (4 giocatori)
+      </button>
+    </div>
+  </div>
+  
+  <!-- Gioco principale (nascosto fino all'inizio) -->
+  <div id="game-board" style="display: none;">
+    <table height="100%" width="100%" style="margin : 0 auto;">
+      <tr>        
+          <td align="center" width="15%" id="lgtd"  style="position :absolute;">
+            <br><br><br>
+              <div id="Player1" >                      
+              <img name="pl2_1" class="retro" /><br><br>
+              <img name="pl2_2" class="retro" /><br><br>
+              <img name="pl2_3" class="retro" /><br><br>
+              <img name="pl2_4" class="retro" /><br><br>
+              <div id="LG" class="plname">&beta;eta</div>
+            </div>   
+          </td>              
+          <td align="center" width="70%" >  
+              <table height="100%" width="100%">
+                <tr>                              
+                  <td  height="10%" id="gutd"> <!-- quì tiro su, da 20 a 10-->                        
+                     <div id="Player2"> 
+                            <input type="button" value="R E G O L E" onclick="toggle2()" id="regole">
+                           
+                             <div id="overlay2" style="display: none">                         
+                              <img id="regoldoc" alt="" />
+                            </div>                    
+                        <img name="pl3_1" class="retro" style="margin-left: 20%;"/> &ensp;                       
+                        <img name="pl3_2" class="retro" />  &ensp;
+                        <img name="pl3_3" class="retro" />  &ensp;
+                        <img name="pl3_4" class="retro" />  
+                        <a id="GU" class="plname">&lambda;amda</a>                    
+                   </div>
+             <!--      <div id="GU" class="plname">&lambda;amda</div> -->
+                  </td>
+               </tr>  
+       <tr>       
+          <td height="60%" width="70%"align="center">       
+           <table id="panno" class="green" >
+             <tr>
+               <td colspan="3" height="20%" align="center" >                                      
+                 <img id="retroround" />              
+                 <img id="round" />
+              </td>   
+             </tr>   
+             <tr>
+                <!--<td align="center" height="20%" width="20%"  >-->
+                <td align="center" height="20%" width="37.5%"  >
+                   <div id="Estraz1" class="retros" >                     
+                   </div>
+                </td> 
+                <td align="center" height="20%" width="25%" >   <!--width="30%" > -->                     
+                     <div id="ammazzo">
+                         <center><img name="mazzo" id="mazzos" onclick="estrai()" onmouseover="selcard(0)" onmouseout="deselcard(0)"/> </center>
+                       <img id="logos"> 
+                   </div>
                 </td>
-             </tr>  
-     <tr>       
-        <td height="60%" width="70%"align="center">       
-         <table id="panno" class="green" >
-          <tr>
-            <td colspan="3" height="20%" align="center" >                                      
-              <img id="retroround" />              
-              <img id="round" />
-           </td>   
-          </tr>   
-          <tr>
-             <!--<td align="center" height="20%" width="20%"  >-->
-             <td align="center" height="20%" width="37.5%"  >
-                <div id="Estraz1" class="retros" >                     
-                </div>
+                <td align="center" height="20%" width="37.5%">  <!--width="20%">-->
+                   <div id="Estraz3" class="retros">                    
+                   </div>
+                </td> 
+             </tr>
+             <tr>
+              <td height="20%" > 
+               <img id="estr_win"/>
+               <a class="plname2" id="estratte"></a> 
              </td> 
-             <td align="center" height="20%" width="25%" >   <!--width="30%" > -->                     
-                  <div id="ammazzo">
-                      <center><img name="mazzo" id="mazzos" onclick="estrai()" onmouseover="selcard(0)" onmouseout="deselcard(0)"/> </center>
-                    <img id="logos"> 
-                </div>
-             </td>
-             <td align="center" height="20%" width="37.5%">  <!--width="20%">-->
-                <div id="Estraz3" class="retros">                    
-                </div>
-             </td> 
-          </tr>
-          <tr>
-           <td height="20%" > 
-            <img id="estr_win"/>
-            <a class="plname2" id="estratte"></a> 
-          </td> 
-           <td height="20%" align="center" >
-            <!-- <div style="z-index: 2;width: 25%; float: left; display: block;">FIGA -->
-              <img id="youestraz"/>      
-            </td> 
-             <td height="20%"></td> 
-          </tr>                          
-         </table>                       
-        </td> <!--chiusura cella centrale -->
-    </tr>
-      <tr>
-        <td align="center"  height="30%" id="youtd" >                             
-           <img name="plx1" width="80" height="110" onclick="sostituzione(1)" style="border-radius: 7px;" onmouseover="selcard(1)" onmouseout="deselcard(1)">        
-           <img name="plx2" width="80" height="110" onclick="sostituzione(2)" style="border-radius: 7px;" onmouseover="selcard(2)" onmouseout="deselcard(2)">          
-           <img name="plx3" width="80" height="110" onclick="sostituzione(3)" style="border-radius: 7px;" onmouseover="selcard(3)" onmouseout="deselcard(3)">          
-           <img name="plx4" width="80" height="110" onclick="sostituzione(4)" style="border-radius: 7px;" onmouseover="selcard(4)" onmouseout="deselcard(4)">                                                                        
-           <!-- <div id="YOU" class="plname">&alpha;lpha</div> -->
-           <a id="YOU" class="plname" style="margin-left: 1%;margin-top:2.5%; position: absolute;">&alpha;lpha</a> 
-        </td> 
-      </tr> 
+              <td height="20%" align="center" >
+               <!-- <div style="z-index: 2;width: 25%; float: left; display: block;">FIGA -->
+                 <img id="youestraz"/>      
+               </td> 
+                <td height="20%"></td> 
+             </tr>                          
+            </table>                       
+           </td> <!--chiusura cella centrale -->
+       </tr>
+         <tr>
+           <td align="center"  height="30%" id="youtd" >                             
+              <img name="plx1" width="80" height="110" onclick="sostituzione(1)" style="border-radius: 7px;" onmouseover="selcard(1)" onmouseout="deselcard(1)">        
+              <img name="plx2" width="80" height="110" onclick="sostituzione(2)" style="border-radius: 7px;" onmouseover="selcard(2)" onmouseout="deselcard(2)">          
+              <img name="plx3" width="80" height="110" onclick="sostituzione(3)" style="border-radius: 7px;" onmouseover="selcard(3)" onmouseout="deselcard(3)">          
+              <img name="plx4" width="80" height="110" onclick="sostituzione(4)" style="border-radius: 7px;" onmouseover="selcard(4)" onmouseout="deselcard(4)">                                      
+              <!-- <div id="YOU" class="plname">&alpha;lpha</div> -->
+              <a id="YOU" class="plname" style="margin-left: 1%;margin-top:2.5%; position: absolute;">&alpha;lpha</a> 
+           </td> 
+         </tr> 
+     </table> 
+     </td>                                                   
+    <td align="center" width="15%" id="rgtd" style="position :absolute;">
+      <br><br><br>
+      <div id="Player3">
+          <img name="pl4_1" class="retro" /> <br> <br>
+          <img name="pl4_2" class="retro" /> <br> <br>
+          <img name="pl4_3" class="retro" /> <br> <br>
+          <img name="pl4_4" class="retro" /> <br>
+          <br><div id="RG" class="plname">&delta;elta</div>
+       </div>     
+     </td> 
+  </tr>
   </table> 
-  </td>                                                   
- <td align="center" width="15%" id="rgtd" style="position :absolute;">
-   <br><br><br>
-   <div id="Player3">
-       <img name="pl4_1" class="retro" /> <br> <br>
-       <img name="pl4_2" class="retro" /> <br> <br>
-       <img name="pl4_3" class="retro" /> <br> <br>
-       <img name="pl4_4" class="retro" /> <br>
-       <br><div id="RG" class="plname">&delta;elta</div>
-    </div>     
-  </td> 
-</tr>
-</table> 
-<div id="overlay" >
-  <div id="finestra">                                                            
-    <div id="engl"> 
-       <input type="button" value="R e s t a r t" onclick="window.open('nineteen10.htm','_self')" id="endwind"> 
-       <input type="button" value="C l o s e" onmousedown="toggle()" id="endwind">      
-     </div> 
-     <div class="caption">
-      <img id="thewin" alt="" />      
-      <span id="end"></span><br><br>
-      <span id="classifica"> </span> <br>              
-        <span id="classifica1"> </span> <br>
-          <span id="classifica2"> </span> <br>
-            <span id="classifica3"> </span> <br>
-              <span id="classifica4"> </span>            
-      </div>                                                        
-  </div>             
-</div>
+  <div id="overlay" >
+    <div id="finestra">                                                            
+      <div id="engl"> 
+         <input type="button" value="R e s t a r t" onclick="window.open('nineteen10.htm','_self')" id="endwind"> 
+         <input type="button" value="C l o s e" onmousedown="toggle()" id="endwind">      
+       </div> 
+       <div class="caption">
+        <img id="thewin" alt="" />      
+        <span id="end"></span><br><br>
+        <span id="classifica"> </span> <br>              
+          <span id="classifica1"> </span> <br>
+            <span id="classifica2"> </span> <br>
+              <span id="classifica3"> </span> <br>
+                <span id="classifica4"> </span>            
+        </div>                                                        
+    </div>             
+  </div>
+  </div>
   
 </div>  
+
+<script>
+  /**
+   * Funzione di setup del gioco - sostituisce init() durante il multiplayer
+   */
+  function handleJoinGame() {
+    const playerName = document.getElementById('player-name').value.trim();
+    const roomId = document.getElementById('room-id').value.trim();
+    
+    if (!playerName) {
+      alert('Inserisci il tuo nome!');
+      return;
+    }
+    
+    // Se specificato un roomId, salvalo globalmente
+    if (roomId) {
+      currentRoomId = roomId;
+    }
+    
+    // Chiama la funzione del socket-handler
+    joinGame(playerName);
+    
+    // Nascondi il pannello di join
+    document.getElementById('game-setup-panel').style.display = 'none';
+    document.getElementById('game-board').style.display = 'block';
+    
+    // Chiama init() se il gioco è single-player (fallback)
+    if (typeof init === 'function') {
+      init();
+    }
+  }
+  
+  /**
+   * Override della funzione estrai() originale per il multiplayer
+   */
+  const originalEstrai = window.estrai;
+  window.estrai = function() {
+    if (isConnected && currentPlayerId) {
+      // Modalità multiplayer
+      drawCard();
+    } else if (originalEstrai) {
+      // Fallback a single-player
+      originalEstrai();
+    }
+  };
+  
+  /**
+   * Override della funzione sostituzione() originale per il multiplayer
+   */
+  const originalSostituzione = window.sostituzione;
+  window.sostituzione = function(position) {
+    if (isConnected && currentPlayerId) {
+      // Modalità multiplayer - leggi la carta dalla mano locale
+      const card = window.myHand ? window.myHand[position - 1] : null;
+      if (card) {
+        substituteCard(position - 1, card);
+      }
+    } else if (originalSostituzione) {
+      // Fallback a single-player
+      originalSostituzione(position);
+    }
+  };
+</script>
+
 </body>
 </html>
