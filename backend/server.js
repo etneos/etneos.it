@@ -16,6 +16,9 @@ const io = socketIo(server, {
   }
 });
 
+// evitare disattivazione del cron-job per disattivazione con 404 not found
+app.get('/', (req, res) => res.status(200).send('Server attivo!'));
+
 // Middleware
 app.use(cors());
 app.use(express.json());
