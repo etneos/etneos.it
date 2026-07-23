@@ -38,9 +38,18 @@
 <body class="bodysfo"  onload="init()" >   
 <div class="container">
   
-  <!-- Status connessione multiplayer -->
-  <div id="connection-status" style="position: fixed; top: 10px; right: 10px; padding: 10px; background: #f0f0f0; border-radius: 5px; font-weight: bold; z-index: 100;">
-    🔴 Disconnesso
+  <!-- Status connessione multiplayer + Codice stanza -->
+  <div style="position: fixed; top: 10px; right: 10px; z-index: 100;">
+    <div id="connection-status" style="padding: 10px; background: #f0f0f0; border-radius: 5px; font-weight: bold; margin-bottom: 10px;">
+      🔴 Disconnesso
+    </div>
+    <div id="room-display" style="padding: 10px; background: #e3f2fd; border-radius: 5px; font-weight: bold; display: none; cursor: pointer; text-align: center;">
+      <div style="font-size: 12px; color: #666;">Codice Stanza:</div>
+      <div style="font-size: 16px; color: #1976d2; margin-top: 5px;" id="room-code-display"></div>
+      <button onclick="copyRoomCode()" style="margin-top: 8px; padding: 5px 12px; font-size: 12px; background: #1976d2; color: white; border: none; border-radius: 3px; cursor: pointer;">
+        📋 Copia
+      </button>
+    </div>
   </div>
   
   <!-- Pannello Join/Start Game (mostra prima di iniziare) -->
@@ -56,8 +65,11 @@
       <label for="room-id">Codice stanza:</label><br><br>
       <input type="text" id="room-id" placeholder="Lascia vuoto per crearne una nuova" style="padding: 10px; width: 250px; font-size: 16px; margin-bottom: 10px;">
       <br>
-      <button onclick="copyRoomCode()" style="padding: 8px 15px; font-size: 14px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer;">
-        📋 Copia Codice
+      <button onclick="generateRoomCode()" style="padding: 8px 15px; font-size: 14px; background: #FF9800; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 5px;">
+        🔄 Genera Codice
+      </button>
+      <button onclick="copyRoomCodeFromInput()" style="padding: 8px 15px; font-size: 14px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        📋 Copia
       </button>
     </div>
     
@@ -199,27 +211,64 @@
 
 <script>
   /**
-   * Copia il codice della stanza negli appunti
+   * Genera un codice stanza PRIMA di unirsi
    */
-  function copyRoomCode() {
+  function generateRoomCode() {
+    const roomIdInput = document.getElementById('room-id');
+    // Se esiste già un codice, non rigenerare
+    if (roomIdInput.value) {
+      alert('Codice già generato: ' + roomIdInput.value);
+      return;
+    }
+    
+    const newCode = 'room-' + Math.random().toString(36).substr(2, 9);
+    roomIdInput.value = newCode;
+    roomIdInput.disabled = true; // Non può più cambiarlo
+    
+    alert('✅ Codice generato: ' + newCode + '\n\nOra puoi copiarlo e condividerlo!');
+  }
+
+  /**
+   * Copia il codice della stanza dal campo input
+   */
+  function copyRoomCodeFromInput() {
     const roomIdInput = document.getElementById('room-id');
     if (!roomIdInput.value) {
-      alert('Genera prima un codice stanza unendoti al gioco!');
+      alert('Genera prima un codice stanza!');
       return;
     }
     
     navigator.clipboard.writeText(roomIdInput.value).then(() => {
-      alert('✅ Codice copiato: ' + roomIdInput.value);
+      alert('✅ Codice copiato negli appunti: ' + roomIdInput.value);
     }).catch(() => {
       // Fallback per browser vecchi
       roomIdInput.select();
       document.execCommand('copy');
-      alert('✅ Codice copiato: ' + roomIdInput.value);
+      alert('✅ Codice copiato negli appunti: ' + roomIdInput.value);
     });
   }
 
   /**
-   * Funzione di setup del gioco - sostituisce init() durante il multiplayer
+   * Copia il codice dalla visualizzazione in alto a destra
+   */
+  function copyRoomCode() {
+    const roomCode = document.getElementById('room-code-display').innerText;
+    if (!roomCode) {
+      alert('Nessun codice disponibile');
+      return;
+    }
+    
+    navigator.clipboard.writeText(roomCode).then(() => {
+      alert('✅ Codice copiato: ' + roomCode);
+    }).catch(() => {
+      roomCode.select();
+      document.execCommand('copy');
+      alert('✅ Codice copiato: ' + roomCode);
+    });
+  }
+
+  /**
+   * Funzione di setup del gioco
    */
   function handleJoinGame() {
     const playerName = document.getElementById('player-name').value.trim();
@@ -229,11 +278,14 @@
       alert('Inserisci il tuo nome!');
       return;
     }
-    
-    // Se specificato un roomId, salvalo globalmente
-    if (roomId) {
-      currentRoomId = roomId;
+
+    if (!roomId) {
+      alert('Genera un codice stanza prima di unirti!');
+      return;
     }
+    
+    // Salva il roomId globalmente
+    currentRoomId = roomId;
     
     // Chiama la funzione del socket-handler
     joinGame(playerName);
@@ -241,6 +293,10 @@
     // Nascondi il pannello di join
     document.getElementById('game-setup-panel').style.display = 'none';
     document.getElementById('game-board').style.display = 'block';
+    
+    // Mostra il codice stanza in alto a destra
+    document.getElementById('room-display').style.display = 'block';
+    document.getElementById('room-code-display').innerText = roomId;
     
     // Chiama init() se il gioco è single-player (fallback)
     if (typeof init === 'function') {
