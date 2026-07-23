@@ -44,7 +44,7 @@
   </div>
   
   <!-- Pannello Join/Start Game (mostra prima di iniziare) -->
-  <div id="game-setup-panel" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.3); z-index: 1000; text-align: center; display: block;">
+  <div id="game-setup-panel" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.3); z-index: 1000; text-align: center; display: block; max-width: 500px;">
     <h2>🎮 Nineteen10 - Multiplayer</h2>
     
     <div style="margin: 20px 0;">
@@ -53,8 +53,12 @@
     </div>
     
     <div style="margin: 20px 0;">
-      <label for="room-id">Codice stanza (opzionale):</label><br><br>
-      <input type="text" id="room-id" placeholder="Lascia vuoto per crearne una nuova" style="padding: 10px; width: 250px; font-size: 16px;">
+      <label for="room-id">Codice stanza:</label><br><br>
+      <input type="text" id="room-id" placeholder="Lascia vuoto per crearne una nuova" style="padding: 10px; width: 250px; font-size: 16px; margin-bottom: 10px;">
+      <br>
+      <button onclick="copyRoomCode()" style="padding: 8px 15px; font-size: 14px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        📋 Copia Codice
+      </button>
     </div>
     
     <div style="margin: 20px 0;">
@@ -63,7 +67,8 @@
       </button>
     </div>
     
-    <div id="players-waiting" style="margin: 20px 0; min-height: 50px;">
+    <div id="players-waiting" style="margin: 20px 0; min-height: 50px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: #f9f9f9;">
+      <p><strong>Giocatori connessi:</strong></p>
       <p>In attesa di giocatori...</p>
     </div>
     
@@ -193,6 +198,26 @@
 </div>  
 
 <script>
+  /**
+   * Copia il codice della stanza negli appunti
+   */
+  function copyRoomCode() {
+    const roomIdInput = document.getElementById('room-id');
+    if (!roomIdInput.value) {
+      alert('Genera prima un codice stanza unendoti al gioco!');
+      return;
+    }
+    
+    navigator.clipboard.writeText(roomIdInput.value).then(() => {
+      alert('✅ Codice copiato: ' + roomIdInput.value);
+    }).catch(() => {
+      // Fallback per browser vecchi
+      roomIdInput.select();
+      document.execCommand('copy');
+      alert('✅ Codice copiato: ' + roomIdInput.value);
+    });
+  }
+
   /**
    * Funzione di setup del gioco - sostituisce init() durante il multiplayer
    */
