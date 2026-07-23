@@ -14,6 +14,7 @@ let currentRoomId;
 let currentPlayerId;
 let currentPlayerRole;
 let isConnected = false;
+let myHand = []; // Aggiungo la mano locale
 
 /**
  * Inizializza la connessione Socket.io
@@ -45,6 +46,7 @@ function initializeSocket() {
     console.log(`${data.playerName} (${data.role}) si è unito al gioco`);
     updatePlayerList(data.publicState);
     showNotification(`${data.playerName} si è unito al gioco`);
+    updateAllPlayersUI(data.publicState);
   });
 
   // Evento: Giocatore esce dalla stanza
@@ -52,6 +54,7 @@ function initializeSocket() {
     console.log(`${data.playerName} ha lasciato il gioco`);
     updatePlayerList(data.publicState);
     showNotification(`${data.playerName} ha lasciato il gioco`);
+    updateAllPlayersUI(data.publicState);
   });
 
   // Evento: Il gioco è pronto per iniziare
@@ -66,6 +69,9 @@ function initializeSocket() {
     console.log('🎮 Il gioco è iniziato!');
     currentRound = data.currentRound;
     showNotification('Il gioco è iniziato!');
+    // Nascondi il pannello di setup, mostra il gioco
+    document.getElementById('game-setup-panel').style.display = 'none';
+    document.getElementById('game-board').style.display = 'block';
   });
 
   // Evento: Un altro giocatore ha estratto una carta
@@ -91,6 +97,7 @@ function initializeSocket() {
 
 /**
  * Unisce il giocatore a una stanza di gioco
+ * CORRETTO: legge il roomId dal campo input o ne genera uno
  */
 function joinGame(playerName) {
   if (!isConnected) {
@@ -98,10 +105,21 @@ function joinGame(playerName) {
     return;
   }
 
-  // Genera o usa un roomId esistente
-  if (!currentRoomId) {
+  // FISSO: Legge il roomId dall'input HTML
+  const roomIdInput = document.getElementById('room-id');
+  if (roomIdInput && roomIdInput.value.trim()) {
+    currentRoomId = roomIdInput.value.trim();
+  } else {
+    // Se non specificato, genera uno (condivisibile con altri)
     currentRoomId = 'room-' + Math.random().toString(36).substr(2, 9);
+    // Mostra il roomId generato agli altri giocatori
+    if (roomIdInput) {
+      roomIdInput.value = currentRoomId;
+      roomIdInput.disabled = true; // Non può più cambiarlo
+    }
   }
+
+  console.log(`Tentativo di join alla stanza: ${currentRoomId}`);
 
   socket.emit('join-room', {
     roomId: currentRoomId,
@@ -158,6 +176,7 @@ function drawCard() {
       displayMyCard(response.card);
       
       // Aggiorna la mano locale
+      myHand = response.playerHand; // Salva localmente
       updateMyHand(response.playerHand);
     } else {
       console.error('❌ Errore draw-card:', response.message);
@@ -181,6 +200,7 @@ function substituteCard(cardPosition, newCard) {
   }, (response) => {
     if (response.success) {
       console.log(`✅ Carta sostituita in posizione ${cardPosition}`);
+      myHand = response.playerHand; // Aggiorna localmente
       updateMyHand(response.playerHand);
     } else {
       console.error('❌ Errore substitute-card:', response.message);
@@ -221,6 +241,7 @@ function updateGameState(gameState) {
 
   // Mostra la mano del giocatore corrente
   if (gameState.myPlayer) {
+    myHand = gameState.myPlayer.hand; // Salva localmente
     updateMyHand(gameState.myPlayer.hand);
     document.getElementById('YOU').innerText = `${gameState.myPlayer.name} (${gameState.myPlayer.role})`;
   }
@@ -267,6 +288,36 @@ function updateOtherPlayers(otherPlayers) {
       }
 
       // Mostra il numero di carte (dorsi)
+      const cardContainers = playerElement.querySelectorAll('img.retro');
+      cardContainers.forEach((card, index) => {
+        if (index < player.handSize) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  });
+}
+
+/**
+ * NUOVO: Aggiorna TUTTI i giocatori nella UI (dal publicState)
+ */
+function updateAllPlayersUI(publicState) {
+  if (!publicState || !publicState.players) return;
+
+  console.log('🎮 Aggiornamento tutti i giocatori:', publicState.players);
+
+  publicState.players.forEach((player) => {
+    const playerElement = getPlayerElement(player.role);
+    if (playerElement) {
+      // Aggiorna il nome
+      const nameElement = playerElement.querySelector('.plname, .plname2');
+      if (nameElement) {
+        nameElement.innerText = `${player.name} (${player.role})`;
+      }
+
+      // Mostra il numero di carte
       const cardContainers = playerElement.querySelectorAll('img.retro');
       cardContainers.forEach((card, index) => {
         if (index < player.handSize) {
@@ -371,6 +422,16 @@ function updateDeckSize(size) {
  */
 function updatePlayerList(publicState) {
   console.log('🎮 Giocatori nella stanza:', publicState.players);
+  
+  // Aggiorna il numero di giocatori nel pannello
+  const playersWaitingDiv = document.getElementById('players-waiting');
+  if (playersWaitingDiv) {
+    let html = `<p>Giocatori connessi: ${publicState.playerCount}/4</p>`;
+    publicState.players.forEach(p => {
+      html += `<p>• ${p.name} (${p.role})</p>`;
+    });
+    playersWaitingDiv.innerHTML = html;
+  }
 }
 
 /**
@@ -398,7 +459,9 @@ function updateConnectionStatus(isConnected) {
  */
 function disableJoinUI() {
   const joinButton = document.getElementById('join-button');
+  const playerNameInput = document.getElementById('player-name');
   if (joinButton) joinButton.disabled = true;
+  if (playerNameInput) playerNameInput.disabled = true;
 }
 
 /**
@@ -415,4 +478,11 @@ function enableStartButton() {
 window.addEventListener('load', () => {
   console.log('📡 Inizializzazione Socket.io...');
   initializeSocket();
+  
+  // Se c'è un roomId nell'URL, lo carica automaticamente
+  const params = new URLSearchParams(window.location.search);
+  const roomIdFromUrl = params.get('room');
+  if (roomIdFromUrl) {
+    document.getElementById('room-id').value = roomIdFromUrl;
+  }
 });
