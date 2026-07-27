@@ -16,6 +16,25 @@ let currentPlayerRole;
 let isConnected = false;
 let myHand = []; // Aggiungo la mano locale
 
+const ROLE_ORDER = ['alpha', 'beta', 'lambda', 'delta'];
+const OPPONENT_PANELS = ['Player1', 'Player2', 'Player3'];
+
+function getPlayerElement(myRole, otherRole) {
+    if (myRole === otherRole) {
+        return document.getElementById('Player_Alpha');
+    }
+
+    const myIdx = ROLE_ORDER.indexOf(myRole);
+    const otherIdx = ROLE_ORDER.indexOf(otherRole);
+
+    const relativeSeat =
+        (otherIdx - myIdx + 4) % 4;
+
+    return document.getElementById(
+        OPPONENT_PANELS[relativeSeat - 1]
+    );
+}
+
 /**
  * Inizializza la connessione Socket.io
  */
@@ -279,7 +298,7 @@ function updateOtherPlayers(otherPlayers) {
   console.log('👥 Altri giocatori:', otherPlayers);
 
   otherPlayers.forEach((player) => {
-    const playerElement = getPlayerElement(player.role);
+    const playerElement = getPlayerElement(currentPlayerRole, player.role);
     if (playerElement) {
       // Aggiorna il nome
       const nameElement = playerElement.querySelector('.plname');
@@ -289,13 +308,20 @@ function updateOtherPlayers(otherPlayers) {
 
       // Mostra il numero di carte (dorsi)
       const cardContainers = playerElement.querySelectorAll('img.retro');
-      cardContainers.forEach((card, index) => {
-        if (index < player.handSize) {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
-        }
-      });
+   if (publicState.status === 'playing') {
+
+    cardContainers.forEach((card,index)=>{
+        card.style.display =
+            index < player.handSize
+                ? 'block'
+                : 'none';
+    });
+}
+else {
+    cardContainers.forEach(card=>{
+      card.style.display='block';
+    });
+}
     }
   });
 }
@@ -309,7 +335,7 @@ function updateAllPlayersUI(publicState) {
   console.log('🎮 Aggiornamento tutti i giocatori:', publicState.players);
 
   publicState.players.forEach((player) => {
-    const playerElement = getPlayerElement(player.role);
+   const playerElement = getPlayerElement(currentPlayerRole, player.role);
     if (playerElement) {
       // Aggiorna il nome
       const nameElement = playerElement.querySelector('.plname, .plname2');
@@ -319,33 +345,21 @@ function updateAllPlayersUI(publicState) {
 
       // Mostra il numero di carte
       const cardContainers = playerElement.querySelectorAll('img.retro');
-      cardContainers.forEach((card, index) => {
-        if (index < player.handSize) {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
-        }
-      });
+    if (publicState.status === 'playing') {
+    cardContainers.forEach((card,index)=>{
+      card.style.display =
+            index < player.handSize
+                ? 'block'
+                : 'none';
+    });
+}
+else {
+    cardContainers.forEach(card=>{
+        card.style.display='block';
+    });
+}
     }
   });
-}
-
-/**
- * Trova l'elemento della UI corrispondente al ruolo
- */
-function getPlayerElement(role) {
-  switch (role) {
-    case 'beta':
-      return document.getElementById('Player1');
-    case 'lambda':
-      return document.getElementById('Player2');
-    case 'delta':
-      return document.getElementById('Player3');
-    case 'alpha':
-      return document.getElementById('Player_Alpha');
-    default:
-      return null;
-  }
 }
 
 /**
@@ -368,7 +382,7 @@ function displayMyCard(cardNumber) {
  * Anima l'estrazione di una carta da parte di un avversario
  */
 function animateCardDrawnByOpponent(playerRole) {
-  const playerElement = getPlayerElement(playerRole);
+  const playerElement = getPlayerElement(currentPlayerRole, player.role);
   if (playerElement) {
     playerElement.style.opacity = '0.7';
     setTimeout(() => {
@@ -381,7 +395,7 @@ function animateCardDrawnByOpponent(playerRole) {
  * Aggiorna la UI della carta di un avversario
  */
 function updatePlayerCardUI(playerRole, position) {
-  const playerElement = getPlayerElement(playerRole);
+  const playerElement = getPlayerElement(currentPlayerRole, player.role);
   if (playerElement) {
     const cardElement = playerElement.querySelector(`img[name="pl${getPlayerPrefix(playerRole)}_${position}"]`);
     if (cardElement) {
