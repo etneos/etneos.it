@@ -12,14 +12,43 @@ const BACKEND_URL = 'https://nineteen10-backend.onrender.com';
 let socket;
 let currentRoomId;
 let currentPlayerId;
-let currentPlayerRole;
+let currentPlayerRole = null;
 let isConnected = false;
 let myHand = []; // Aggiungo la mano locale
+
+/**************************************************************************
+ * UI RENDERING
+ **************************************************************************/
+
+const ROLE_ORDER = ['alpha', 'beta', 'lambda', 'delta'];
+
+/*
+ * Vista relativa dei pannelli.
+ *
+ * Player_Alpha = sempre il giocatore locale
+ *
+ * Player1 = giocatore alla sinistra
+ * Player2 = giocatore di fronte
+ * Player3 = giocatore alla destra
+ */
+const RELATIVE_PANELS = [
+    "Player1",
+    "Player2",
+    "Player3"
+];
+
+// cache dei pannelli HTML
+const playerPanels = {
+    alpha: document.getElementById("Player_Alpha"),
+    Player1: document.getElementById("Player1"),
+    Player2: document.getElementById("Player2"),
+    Player3: document.getElementById("Player3")
+};
 
 const ROLE_ORDER = ['alpha', 'beta', 'lambda', 'delta'];
 const OPPONENT_PANELS = ['Player1', 'Player2', 'Player3'];
 
-function getPlayerElement(myRole, otherRole) {
+/*function getPlayerElement(myRole, otherRole) {
     if (myRole === otherRole) {
         return document.getElementById('Player_Alpha');
     }
@@ -33,7 +62,7 @@ function getPlayerElement(myRole, otherRole) {
     return document.getElementById(
         OPPONENT_PANELS[relativeSeat - 1]
     );
-}
+} */
 
 /**
  * Inizializza la connessione Socket.io
@@ -253,16 +282,23 @@ function requestGameState() {
 function updateGameState(gameState) {
   if (!gameState) return;
 
-  console.log('📊 Stato gioco aggiornato:', gameState);
+  console.log('Stato gioco aggiornato:', gameState);
 
   // Aggiorna i dati globali
   currentRound = gameState.currentRound;
 
   // Mostra la mano del giocatore corrente
   if (gameState.myPlayer) {
-    myHand = gameState.myPlayer.hand; // Salva localmente
+
+    // <<< NUOVO >>>
+    currentPlayerRole = gameState.myPlayer.role;
+
+    myHand = gameState.myPlayer.hand;
+
     updateMyHand(gameState.myPlayer.hand);
-    document.getElementById('YOU').innerText = `${gameState.myPlayer.name} (${gameState.myPlayer.role})`;
+
+    document.getElementById('YOU').innerText =
+        `${gameState.myPlayer.name} (${gameState.myPlayer.role})`;
   }
 
   // Mostra gli altri giocatori
@@ -294,72 +330,85 @@ function updateMyHand(hand) {
 /**
  * Aggiorna la lista degli altri giocatori
  */
-function updateOtherPlayers(otherPlayers) {
-  console.log('👥 Altri giocatori:', otherPlayers);
-
-  otherPlayers.forEach((player) => {
-    const playerElement = getPlayerElement(currentPlayerRole, player.role);
-    if (playerElement) {
-      // Aggiorna il nome
-      const nameElement = playerElement.querySelector('.plname');
-      if (nameElement) {
-        nameElement.innerText = `${player.name} (${player.role})`;
-      }
-
-      // Mostra il numero di carte (dorsi)
-      const cardContainers = playerElement.querySelectorAll('img.retro');
-   if (publicState.status === 'playing') {
-
-    cardContainers.forEach((card,index)=>{
-        card.style.display =
-            index < player.handSize
-                ? 'block'
-                : 'none';
-    });
+function updateOtherPlayers(otherPlayers)
+{
+    renderPlayers(
+        otherPlayers,
+        "playing"
+    );
 }
-else {
-    cardContainers.forEach(card=>{
-      card.style.display='block';
+
+/**************************************************************************
+ * Render unico di tutti i pannelli giocatore
+ **************************************************************************/
+
+function renderPlayers(players, status)
+{
+    if (!players || !currentPlayerRole)
+        return;
+
+    console.log("🎨 Render giocatori:", players);
+
+    // pulizia completa dei tre pannelli avversari
+
+    ["Player1","Player2","Player3"].forEach(id => {
+
+        clearOpponentPanel(
+            document.getElementById(id)
+        );
+
     });
-}
-    }
-  });
+
+    players.forEach(player => {
+
+        const panel =
+            getPlayerElement(
+                currentPlayerRole,
+                player.role
+            );
+
+        if (!panel)
+            return;
+
+        //----------------------------------------------------
+        // Nome
+        //----------------------------------------------------
+
+        const name =
+            getPlayerNameElement(panel);
+
+        if (name)
+            name.textContent =
+                `${player.name} (${player.role})`;
+
+        //----------------------------------------------------
+        // Carte
+        //----------------------------------------------------
+
+        if (player.role === currentPlayerRole)
+            return;
+
+        const handSize =
+            player.handSize || 0;
+
+        showCardBacks(panel, handSize);
+
+    });
+
 }
 
 /**
  * NUOVO: Aggiorna TUTTI i giocatori nella UI (dal publicState)
  */
-function updateAllPlayersUI(publicState) {
-  if (!publicState || !publicState.players) return;
+function updateAllPlayersUI(publicState)
+{
+    if (!publicState)
+        return;
 
-  console.log('🎮 Aggiornamento tutti i giocatori:', publicState.players);
-
-  publicState.players.forEach((player) => {
-   const playerElement = getPlayerElement(currentPlayerRole, player.role);
-    if (playerElement) {
-      // Aggiorna il nome
-      const nameElement = playerElement.querySelector('.plname, .plname2');
-      if (nameElement) {
-        nameElement.innerText = `${player.name} (${player.role})`;
-      }
-
-      // Mostra il numero di carte
-      const cardContainers = playerElement.querySelectorAll('img.retro');
-    if (publicState.status === 'playing') {
-    cardContainers.forEach((card,index)=>{
-      card.style.display =
-            index < player.handSize
-                ? 'block'
-                : 'none';
-    });
-}
-else {
-    cardContainers.forEach(card=>{
-        card.style.display='block';
-    });
-}
-    }
-  });
+    renderPlayers(
+        publicState.players,
+        publicState.status
+    );
 }
 
 /**
@@ -410,6 +459,7 @@ function updatePlayerCardUI(playerRole, position) {
 /**
  * Ottenere il prefisso del nome dell'immagine in base al ruolo
  */
+
 function getPlayerPrefix(role) {
   switch (role) {
     case 'beta':
@@ -421,6 +471,78 @@ function getPlayerPrefix(role) {
     default:
       return '';
   }
+} 
+
+function getPlayerElement(myRole, otherRole)
+{
+    // pannello del giocatore locale
+    if (myRole === otherRole)
+        return playerPanels.alpha;
+
+    const myIndex = ROLE_ORDER.indexOf(myRole);
+    const otherIndex = ROLE_ORDER.indexOf(otherRole);
+
+    if (myIndex === -1 || otherIndex === -1)
+        return null;
+
+    // posizione relativa (1..3)
+    const relativeSeat =
+        (otherIndex - myIndex + ROLE_ORDER.length)
+        % ROLE_ORDER.length;
+
+    if (relativeSeat < 1 || relativeSeat > 3)
+        return null;
+
+    return playerPanels[
+        RELATIVE_PANELS[relativeSeat - 1]
+    ];
+}
+
+function getPlayerNameElement(panel)
+{
+    if (!panel)
+        return null;
+
+    return panel.querySelector(".plname");
+}
+
+function getPlayerCards(panel)
+{
+    if (!panel)
+        return [];
+
+    return panel.querySelectorAll("img");
+}
+
+function showCardBacks(panel, numberOfCards)
+{
+    const cards = getPlayerCards(panel);
+
+    cards.forEach((card, index) =>
+    {
+        card.style.display =
+            (index < numberOfCards)
+            ? "block"
+            : "none";
+    });
+}
+
+function clearOpponentPanel(panel)
+{
+    if (!panel)
+        return;
+
+    const cards = getPlayerCards(panel);
+
+    cards.forEach(card =>
+    {
+        card.style.display = "none";
+    });
+
+    const name = getPlayerNameElement(panel);
+
+    if (name)
+        name.innerText = "";
 }
 
 /**
