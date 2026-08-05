@@ -1,68 +1,163 @@
 /**
  * socket-handler.js
- * Gestisce la comunicazione Socket.io tra il client (gioco) e il backend multiplayer
+ * Multiplayer client
+ * Refactoring UI v2
  */
 
-// Configurazione del server
+//======================================================
+// CONFIGURAZIONE
+//======================================================
+
 //const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
 const BACKEND_URL = 'https://nineteen10-backend.onrender.com';
 //const BACKEND_URL = 'https://etneos-nineteen10.onrender.com';
 
-// Variabili globali
-let socket;
-let currentRoomId;
-let currentPlayerId;
+
+//======================================================
+// VARIABILI GLOBALI
+//======================================================
+
+let socket = null;
+
+let currentRoomId = null;
+let currentPlayerId = null;
 let currentPlayerRole = null;
+
 let isConnected = false;
-let myHand = []; // Aggiungo la mano locale
 
-/**************************************************************************
- * UI RENDERING
- **************************************************************************/
+let myHand = [];
 
-const ROLE_ORDER = ['alpha', 'beta', 'lambda', 'delta'];
 
-/*
- * Vista relativa dei pannelli.
- *
- * Player_Alpha = sempre il giocatore locale
- *
- * Player1 = giocatore alla sinistra
- * Player2 = giocatore di fronte
- * Player3 = giocatore alla destra
- */
+//======================================================
+// COSTANTI UI
+//======================================================
+
+const ROLE_ORDER = [
+    "alpha",
+    "beta",
+    "lambda",
+    "delta"
+];
+
 const RELATIVE_PANELS = [
     "Player1",
     "Player2",
     "Player3"
 ];
 
-// cache dei pannelli HTML
+
+//======================================================
+// CACHE DOM
+//======================================================
+
 const playerPanels = {
-    alpha: document.getElementById("Player_Alpha"),
-    Player1: document.getElementById("Player1"),
-    Player2: document.getElementById("Player2"),
-    Player3: document.getElementById("Player3")
+
+    alpha:
+        document.getElementById("Player_Alpha"),
+
+    Player1:
+        document.getElementById("Player1"),
+
+    Player2:
+        document.getElementById("Player2"),
+
+    Player3:
+        document.getElementById("Player3")
 };
 
-const ROLE_ORDER = ['alpha', 'beta', 'lambda', 'delta'];
-const OPPONENT_PANELS = ['Player1', 'Player2', 'Player3'];
 
-/*function getPlayerElement(myRole, otherRole) {
-    if (myRole === otherRole) {
-        return document.getElementById('Player_Alpha');
-    }
+//======================================================
+// MAPPING RUOLI -> PANNELLI
+//======================================================
 
-    const myIdx = ROLE_ORDER.indexOf(myRole);
-    const otherIdx = ROLE_ORDER.indexOf(otherRole);
+function getPlayerElement(myRole, otherRole)
+{
+    if (!myRole || !otherRole)
+        return null;
+
+    if (myRole === otherRole)
+        return playerPanels.alpha;
+
+    const myIndex =
+        ROLE_ORDER.indexOf(myRole);
+
+    const otherIndex =
+        ROLE_ORDER.indexOf(otherRole);
+
+    if (myIndex < 0 || otherIndex < 0)
+        return null;
 
     const relativeSeat =
-        (otherIdx - myIdx + 4) % 4;
+        (otherIndex - myIndex + 4) % 4;
 
-    return document.getElementById(
-        OPPONENT_PANELS[relativeSeat - 1]
-    );
-} */
+    if (relativeSeat === 0)
+        return playerPanels.alpha;
+
+    return playerPanels[
+        RELATIVE_PANELS[
+            relativeSeat - 1
+        ]
+    ];
+}
+
+
+//======================================================
+// UTILITY UI
+//======================================================
+
+function getPlayerNameElement(panel)
+{
+    if (!panel)
+        return null;
+
+    return panel.querySelector(".plname");
+}
+
+
+function getPlayerCards(panel)
+{
+    if (!panel)
+        return [];
+
+    return panel.querySelectorAll("img.retro");
+}
+
+
+function clearOpponentPanel(panel)
+{
+    if (!panel)
+        return;
+
+    const name =
+        getPlayerNameElement(panel);
+
+    if (name)
+        name.textContent = "";
+
+    getPlayerCards(panel)
+        .forEach(card =>
+        {
+            card.style.display = "none";
+            card.style.opacity = "1";
+        });
+}
+
+
+function showCardBacks(panel, handSize)
+{
+    const cards =
+        getPlayerCards(panel);
+
+    cards.forEach((card,index)=>
+    {
+        card.style.display =
+            index < handSize
+                ? "block"
+                : "none";
+
+        card.style.opacity = "1";
+    });
+}
 
 /**
  * Inizializza la connessione Socket.io
