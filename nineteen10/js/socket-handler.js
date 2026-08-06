@@ -70,12 +70,16 @@ const playerPanels = {
 /**
  * Mappa il ruolo di un altro giocatore al pannello relativo
  * Basato sulla posizione circolare dei ruoli
+ * 
+ * Se otherRole === currentPlayerRole, NON lo renderizziamo qui
+ * (il giocatore corrente ha il suo pannello alpha fisso)
  */
 function getPlayerElement(myRole, otherRole) {
     if (!myRole || !otherRole) return null;
 
-    // Se è lo stesso ruolo (il giocatore stesso)
-    if (myRole === otherRole) return playerPanels.alpha;
+    // Se è lo stesso ruolo (il giocatore stesso), ritorna null
+    // Il giocatore corrente NON va renderizzato nei pannelli avversari
+    if (myRole === otherRole) return null;
 
     const myIndex = ROLE_ORDER.indexOf(myRole);
     const otherIndex = ROLE_ORDER.indexOf(otherRole);
@@ -85,7 +89,7 @@ function getPlayerElement(myRole, otherRole) {
     // Calcolo posizione relativa in senso orario
     const relativeSeat = (otherIndex - myIndex + ROLE_ORDER.length) % ROLE_ORDER.length;
 
-    // relativeSeat = 0 -> è il giocatore stesso (già gestito sopra)
+    // relativeSeat = 0 -> è il giocatore stesso (dovrebbe già essere gestito sopra)
     // relativeSeat 1..3 -> i tre avversari (sinistra, sopra, destra)
     if (relativeSeat < 1 || relativeSeat > 3) return null;
 
@@ -236,6 +240,7 @@ function initializeSocket() {
         console.log(`${data.playerName} (${data.role}) si è unito al gioco`);
         updatePlayerList(data.publicState);
         showNotification(`${data.playerName} si è unito al gioco`);
+        // Renderizza SOLO gli altri giocatori, non chi si è appena connesso
         renderPlayers(data.publicState);
     });
 
@@ -470,8 +475,8 @@ function updateGameState(gameState) {
  * Questo è l'UNICO metodo che gestisce la visualizzazione dei giocatori.
  * Riceve i dati di stato (gameState o publicState) e:
  * 1. Pulisce tutti i pannelli avversari
- * 2. Renderizza ogni giocatore nel pannello appropriato
- * 3. Gestisce correttamente il mapping ruoli -> posizioni
+ * 2. Renderizza ogni giocatore AVVERSARIO nel pannello appropriato
+ * 3. NON renderizza il giocatore corrente (che rimane nel pannello alpha fisso)
  */
 function renderPlayers(stateData) {
     if (!currentPlayerRole) {
@@ -480,16 +485,19 @@ function renderPlayers(stateData) {
     }
 
     // Estrai l'array dei giocatori da gameState o publicState
-    let playersToRender = [];
+    let allPlayers = [];
     if (stateData.otherPlayers) {
         // Viene da gameState (singolo giocatore)
-        playersToRender = stateData.otherPlayers;
+        allPlayers = stateData.otherPlayers;
     } else if (stateData.players) {
         // Viene da publicState (tutti i giocatori)
-        playersToRender = stateData.players.filter(p => p.role !== currentPlayerRole);
+        allPlayers = stateData.players;
     }
 
-    console.log(`🎨 Rendering ${playersToRender.length} giocatori avversari`);
+    // Filtra: renderizza SOLO i giocatori che NON sono il giocatore corrente
+    let playersToRender = allPlayers.filter(p => p.role !== currentPlayerRole);
+
+    console.log(`🎨 Rendering ${playersToRender.length} giocatori avversari (su ${allPlayers.length} totali)`);
 
     // Step 1: Pulisci completamente i tre pannelli avversari
     [playerPanels.Player1, playerPanels.Player2, playerPanels.Player3].forEach(panel => {
@@ -498,11 +506,6 @@ function renderPlayers(stateData) {
 
     // Step 2: Renderizza ogni giocatore avversario
     playersToRender.forEach(player => {
-        // Salta il giocatore stesso (dovrebbe già essere filtrato, ma per sicurezza)
-        if (player.role === currentPlayerRole) {
-            return;
-        }
-
         // Ottieni il pannello corretto per questo giocatore
         const panel = getPlayerElement(currentPlayerRole, player.role);
         if (!panel) {
