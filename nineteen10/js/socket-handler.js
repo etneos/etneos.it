@@ -52,15 +52,18 @@ const ROLE_DISPLAY_NAMES = {
 
 
 //======================================================
-// CACHE DOM
+// CACHE DOM - LAZY INITIALIZATION
 //======================================================
 
-const playerPanels = {
-    alpha: document.getElementById("Player_Alpha"),
-    Player1: document.getElementById("Player1"),
-    Player2: document.getElementById("Player2"),
-    Player3: document.getElementById("Player3")
-};
+// Inizializza i pannelli SOLO quando servono (non al caricamento del modulo)
+function getPlayerPanels() {
+    return {
+        alpha: document.getElementById("Player_Alpha"),
+        Player1: document.getElementById("Player1"),
+        Player2: document.getElementById("Player2"),
+        Player3: document.getElementById("Player3")
+    };
+}
 
 
 //======================================================
@@ -84,16 +87,30 @@ function getPlayerElement(myRole, otherRole) {
     const myIndex = ROLE_ORDER.indexOf(myRole);
     const otherIndex = ROLE_ORDER.indexOf(otherRole);
 
-    if (myIndex < 0 || otherIndex < 0) return null;
+    if (myIndex < 0 || otherIndex < 0) {
+        console.error(`❌ getPlayerElement: ruolo non valido - myRole=${myRole}, otherRole=${otherRole}`);
+        return null;
+    }
 
     // Calcolo posizione relativa in senso orario
     const relativeSeat = (otherIndex - myIndex + ROLE_ORDER.length) % ROLE_ORDER.length;
 
     // relativeSeat = 0 -> è il giocatore stesso (dovrebbe già essere gestito sopra)
     // relativeSeat 1..3 -> i tre avversari (sinistra, sopra, destra)
-    if (relativeSeat < 1 || relativeSeat > 3) return null;
+    if (relativeSeat < 1 || relativeSeat > 3) {
+        console.error(`❌ getPlayerElement: relativeSeat fuori range - relativeSeat=${relativeSeat} (myRole=${myRole}, otherRole=${otherRole})`);
+        return null;
+    }
 
-    return playerPanels[RELATIVE_PANELS[relativeSeat - 1]];
+    const playerPanels = getPlayerPanels();
+    const panelKey = RELATIVE_PANELS[relativeSeat - 1];
+    const panel = playerPanels[panelKey];
+
+    if (!panel) {
+        console.error(`❌ getPlayerElement: pannello non trovato - panelKey=${panelKey}, relativeSeat=${relativeSeat}`);
+    }
+
+    return panel;
 }
 
 
@@ -237,16 +254,18 @@ function initializeSocket() {
 
     // Evento: Giocatore si unisce alla stanza
     socket.on('player-joined', (data) => {
-        console.log(`${data.playerName} (${data.role}) si è unito al gioco`);
+        console.log(`✅ ${data.playerName} (${data.role}) si è unito al gioco`);
+        console.log('📊 Stato pubblico ricevuto:', data.publicState);
         updatePlayerList(data.publicState);
         showNotification(`${data.playerName} si è unito al gioco`);
-        // Renderizza SOLO gli altri giocatori, non chi si è appena connesso
+        // Renderizza gli avversari visibili in questa stanza
         renderPlayers(data.publicState);
     });
 
     // Evento: Giocatore esce dalla stanza
     socket.on('player-left', (data) => {
-        console.log(`${data.playerName} ha lasciato il gioco`);
+        console.log(`❌ ${data.playerName} ha lasciato il gioco`);
+        console.log('📊 Stato pubblico ricevuto:', data.publicState);
         updatePlayerList(data.publicState);
         showNotification(`${data.playerName} ha lasciato il gioco`);
         renderPlayers(data.publicState);
@@ -455,6 +474,7 @@ function updateGameState(gameState) {
 
     // Renderizza gli altri giocatori
     if (gameState.otherPlayers && gameState.otherPlayers.length > 0) {
+        console.log('📋 otherPlayers trovati, renderizzando...');
         renderPlayers(gameState);
     }
 
@@ -489,23 +509,35 @@ function renderPlayers(stateData) {
     if (stateData.otherPlayers) {
         // Viene da gameState (singolo giocatore)
         allPlayers = stateData.otherPlayers;
+        console.log('📋 Usando otherPlayers da gameState');
     } else if (stateData.players) {
         // Viene da publicState (tutti i giocatori)
         allPlayers = stateData.players;
+        console.log('📋 Usando players da publicState');
     }
 
     // Filtra: renderizza SOLO i giocatori che NON sono il giocatore corrente
     let playersToRender = allPlayers.filter(p => p.role !== currentPlayerRole);
 
-    console.log(`🎨 Rendering ${playersToRender.length} giocatori avversari (su ${allPlayers.length} totali)`);
+    console.log(`🎨 Rendering: ${playersToRender.length} avversari da renderizzare (su ${allPlayers.length} totali)`);
+    console.log('📌 Giocatori da renderizzare:', playersToRender.map(p => `${p.name}(${p.role})`).join(', '));
+
+    // Recupera i pannelli (lazy)
+    const playerPanels = getPlayerPanels();
 
     // Step 1: Pulisci completamente i tre pannelli avversari
-    [playerPanels.Player1, playerPanels.Player2, playerPanels.Player3].forEach(panel => {
+    [playerPanels.Player1, playerPanels.Player2, playerPanels.Player3].forEach((panel, idx) => {
+        if (!panel) {
+            console.error(`❌ Pannello non trovato: Player${idx + 1}`);
+            return;
+        }
         clearOpponentPanel(panel);
     });
 
     // Step 2: Renderizza ogni giocatore avversario
     playersToRender.forEach(player => {
+        console.log(`  📍 Renderizzando ${player.name} (${player.role})...`);
+
         // Ottieni il pannello corretto per questo giocatore
         const panel = getPlayerElement(currentPlayerRole, player.role);
         if (!panel) {
@@ -520,7 +552,7 @@ function renderPlayers(stateData) {
         const handSize = player.handSize || 0;
         showCardBacks(panel, handSize);
 
-        console.log(`  ✓ ${player.name} (${player.role}) renderizzato con ${handSize} carte`);
+        console.log(`  ✅ ${player.name} (${player.role}) renderizzato con ${handSize} carte`);
     });
 }
 
