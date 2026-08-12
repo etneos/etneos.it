@@ -54,7 +54,7 @@
   width: 71px; 
   height: 107px;  
   border-radius: 7px;
-  display: inline-block;  /* Importante: rende visibili le immagini */
+  display: inline-block;  /* Importante: rende visibili le immagini e mantiene inline */
   margin: 0;
   padding: 0;
 }
@@ -67,13 +67,21 @@
   display: inline-block;
 }
 
-/* Pannelli giocatori - layout stabile */
-#Player1, #Player2, #Player3 {
-  min-height: 480px;  /* Altezza minima per evitare collassi */
+/* Pannelli giocatori LATERALI (Player1 e Player3) - layout verticale */
+#Player1, #Player3 {
   display: flex;
-  flex-direction: column;
+  flex-direction: column;  /* Layout verticale per le carte impilate */
   align-items: center;
   justify-content: flex-start;
+  padding: 10px;
+  box-sizing: border-box;
+  min-height: 480px;
+}
+
+/* Pannello giocatore TOP (Player2) - layout ORIZZONTALE preservato */
+#Player2 {
+  /* NON aggiungere flex: mantieni il layout inline originale */
+  /* Le carte restano inline grazie a display: inline-block su .retro */
   padding: 10px;
   box-sizing: border-box;
 }
