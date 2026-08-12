@@ -58,7 +58,6 @@ const ROLE_DISPLAY_NAMES = {
 // Inizializza i pannelli SOLO quando servono (non al caricamento del modulo)
 function getPlayerPanels() {
     return {
-        alpha: document.getElementById("Player_Alpha"),
         Player1: document.getElementById("Player1"),
         Player2: document.getElementById("Player2"),
         Player3: document.getElementById("Player3")
@@ -128,7 +127,8 @@ function getPlayerNameElement(panel) {
 
 
 /**
- * Ottiene tutte le immagini delle carte da un pannello
+ * Ottiene tutte le immagini delle carte (SOLO .retro) da un pannello
+ * FIX: Seleziona SOLO le carte .retro, non tutte le immagini
  */
 function getPlayerCards(panel) {
     if (!panel) return [];
@@ -156,7 +156,10 @@ function getCardImagePrefix(role) {
 
 /**
  * Pulisce completamente un pannello avversario
- * (nasconde tutte le carte e il nome)
+ * (nasconde tutte le carte .retro e il nome)
+ * 
+ * FIX: Usa querySelectorAll("img.retro") NON querySelectorAll("img")
+ * Questo assicura che solo le carte vengano nascoste, non altre immagini
  */
 function clearOpponentPanel(panel) {
     if (!panel) return;
@@ -167,8 +170,10 @@ function clearOpponentPanel(panel) {
         name.textContent = "";
     }
 
-    // Nascondi tutte le carte
-    getPlayerCards(panel).forEach(card => {
+    // Nascondi SOLO le immagini con classe .retro
+    // FIX: querySelectorAll("img.retro") NON querySelectorAll("img")
+    const cards = panel.querySelectorAll("img.retro");
+    cards.forEach(card => {
         card.style.display = "none";
         card.style.opacity = "1";
     });
