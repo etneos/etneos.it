@@ -96,17 +96,18 @@
   flex-wrap: nowrap;
 }
 
-/* Pannello giocatore BOTTOM (YOU) - layout ORIZZONTALE */
+/* Pannello giocatore BOTTOM (YOU) - layout ORIZZONTALE CENTRATO */
 #youtd {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 8px;
   flex-wrap: nowrap;
   padding: 10px;
   overflow: visible;
   height: auto !important;
+  width: 100%;
 }
 
 #Player1 {
