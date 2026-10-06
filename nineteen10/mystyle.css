@@ -35,7 +35,7 @@
 }
 .bodysfo {
   background: url("img/sfondoOk.jpg"); /* no-repeat; */
-  overflow-y: hidden;
+  overflow: visible;
   margin: 0;
   padding: 0;
 }
@@ -54,7 +54,9 @@
   width: 71px; 
   height: 107px;  
   border-radius: 7px;
-  display: inline-block;  /* Importante: rende visibili le immagini e mantiene inline */
+  display: inline-block !important;  /* Importante: rende visibili le immagini e mantiene inline */
+  visibility: visible !important;
+  opacity: 1 !important;
   margin: 0;
   padding: 0;
 }
@@ -76,6 +78,7 @@
   padding: 10px;
   box-sizing: border-box;
   min-height: 480px;
+  overflow: visible;
 }
 
 /* Pannello giocatore TOP (Player2) - layout ORIZZONTALE preservato */
@@ -84,6 +87,9 @@
   /* Le carte restano inline grazie a display: inline-block su .retro */
   padding: 10px;
   box-sizing: border-box;
+  overflow: visible;
+  display: block;
+  min-height: 180px;
 }
 
 #Player1 {
@@ -104,6 +110,7 @@
     padding: 0;
     background-image: none;
     background-color: white;
+    overflow: visible;
   }
   
   .container {
@@ -111,22 +118,26 @@
     width: 1366px; /* Larghezza massima del contenitore */
     height: 768px;
     margin: 0 auto; /* Centra il contenitore */
-    overflow: hidden; /* Previene l'espansione */
+    overflow: visible; /* Permette ai pannelli laterali di rimanere visibili */
     box-sizing: border-box;
   }
   
   #Player1 {
     position: absolute;
-    left: 130px;
-    top: 100px;
-    width: 130px;  /* Larghezza fissa per evitare espansione */
+    left: 10px;
+    top: 80px;
+    width: 120px;  /* Larghezza fissa per evitare espansione */
+    z-index: 5;
+    overflow: visible;
   }
   
   #Player3 {
     position: absolute;
-    right: 130px;
-    top: 100px;
-    width: 130px;  /* Larghezza fissa per evitare espansione */
+    right: 10px;
+    top: 80px;
+    width: 120px;  /* Larghezza fissa per evitare espansione */
+    z-index: 5;
+    overflow: visible;
   }
   
   #overlay2 {
@@ -227,6 +238,10 @@
   font-family: cursive;
   color: #000078;
   margin-top: 10px;
+  visibility: visible;
+  display: block;
+  z-index: 10;
+  position: relative;
 }
 
 .plname2 {
@@ -263,4 +278,14 @@
 
 #estr_win {
   content: url("img/extracted.png");
+}
+
+/* MIGLIORAMENTI PER MULTIPLAYER - Visualizzazione sempre attiva */
+#game-board {
+  display: block !important;
+  overflow: visible !important;
+}
+
+#gutd, #youtd, #lgtd, #rgtd {
+  overflow: visible !important;
 }
