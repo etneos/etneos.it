@@ -59,6 +59,7 @@
   opacity: 1 !important;
   margin: 0;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .retros {
@@ -81,15 +82,29 @@
   overflow: visible;
 }
 
-/* Pannello giocatore TOP (Player2) - layout ORIZZONTALE preservato */
+/* Pannello giocatore TOP (Player2) - layout ORIZZONTALE */
 #Player2 {
-  /* NON aggiungere flex: mantieni il layout inline originale */
-  /* Le carte restano inline grazie a display: inline-block su .retro */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
   padding: 10px;
   box-sizing: border-box;
   overflow: visible;
-  display: block;
-  min-height: 180px;
+  gap: 8px;
+  min-height: 120px;
+  flex-wrap: nowrap;
+}
+
+/* Pannello giocatore BOTTOM (YOU) - layout ORIZZONTALE */
+#youtd {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  padding: 10px;
 }
 
 #Player1 {
@@ -100,6 +115,33 @@
 #Player3 {
   width: 100%;
   min-width: 100px;
+}
+
+/* Nome giocatore - layout orizzontale */
+#GU, #YOU {
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+#GU {
+  font-family: cursive;
+  color: #000078;
+  z-index: 10;
+  position: relative;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+#YOU {
+  font-family: cursive;
+  color: #000078;
+  z-index: 10;
+  position: relative;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 0 !important;
+  margin-left: 8px !important;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -286,6 +328,10 @@
   overflow: visible !important;
 }
 
-#gutd, #youtd, #lgtd, #rgtd {
+#gutd, #rgtd {
+  overflow: visible !important;
+}
+
+#lgtd {
   overflow: visible !important;
 }
