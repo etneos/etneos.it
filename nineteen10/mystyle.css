@@ -101,10 +101,12 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   flex-wrap: nowrap;
   padding: 10px;
+  overflow: visible;
+  height: auto !important;
 }
 
 #Player1 {
@@ -117,14 +119,11 @@
   min-width: 100px;
 }
 
-/* Nome giocatore - layout orizzontale */
-#GU, #YOU {
+/* Nome giocatore TOP - layout orizzontale */
+#GU {
   white-space: nowrap;
   flex-shrink: 0;
   margin-left: 8px;
-}
-
-#GU {
   font-family: cursive;
   color: #000078;
   z-index: 10;
@@ -133,15 +132,19 @@
   font-weight: bold;
 }
 
+/* Nome giocatore BOTTOM - layout orizzontale */
 #YOU {
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: 8px;
   font-family: cursive;
   color: #000078;
   z-index: 10;
-  position: relative;
+  position: static !important;
   font-size: 14px;
   font-weight: bold;
   margin-top: 0 !important;
-  margin-left: 8px !important;
+  order: 5;
 }
 
 /* ===== RESPONSIVE ===== */
