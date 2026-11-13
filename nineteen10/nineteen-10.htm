@@ -31,7 +31,8 @@ function ricarica() {
   
 ricarica();
 </script>  
-<script src="js/primobile.js" ></script>
+<script src="js/primobile.js"></script>
+<script src="js/draw-fix.js"></script>
 <script src="js/seldes.js"></script>  
 <script>  
 function isTablet() {   
@@ -82,127 +83,116 @@ if (isFirefox()) {
 
   gtag('config', 'G-HMJYLJ4F94');
 </script>
-<body class="bodysfo"  onload="init()">  
-      <div id="sfondoVerde"> </div>
+<body class="bodysfo" onload="init()">
+      <div id="sfondoVerde"></div>
       <input type="button" value="R E G O L E" onmousedown="toggle2()" id="regole">
-      <div id="overlay2" style="display: none">                         
+      <div id="overlay2" style="display: none">
           <img id="regoldoc" alt="" />
-      </div> 
-  
-<table height="15%" width="100%" >
+      </div>
+
+<table height="15%" width="100%">
     <tr>
-        <td align="center" id="gutd" height="20%"> <!-- quì tiro su, da 20 a 10-->
-                  <div id="Player2" style="margin-left:8%;margin-top:0%;">                    
-                    <img name="pl3_1" class="retro" /> &ensp; 
-                    <img name="pl3_2" class="retro" />  &ensp;
-                    <img name="pl3_3" class="retro" />  &ensp;
-                    <img name="pl3_4" class="retro" />  
-                   <a id="GU" class="plname">&lambda;amda</a>                                                 
-                 </div>           
-          </td>
-     </tr> 
-</table>    
-    
-  
-<table height="60%" width="100%" >
-      <tr>        
-        <td id="lgtd" height="60%">
-             <br><br><br>
-            <div id="Player1" style="display:block;" > 
-             <img name="pl2_1" class="retro"/><br><br>
-             <img name="pl2_2" class="retro"/><br><br>
-             <img name="pl2_3" class="retro"/><br><br>
-             <img name="pl2_4" class="retro"/><br><br>
-             <div id="LG" class="plname">&beta;eta</div>
-            </div>   
+        <td align="center" id="gutd" height="20%">
+            <div id="Player2" style="margin-left:8%;margin-top:0%;">
+                <img name="pl3_1" class="retro" /> &ensp;
+                <img name="pl3_2" class="retro" /> &ensp;
+                <img name="pl3_3" class="retro" /> &ensp;
+                <img name="pl3_4" class="retro" />
+                <a id="GU" class="plname">&lambda;amda</a>
+            </div>
         </td>
-        
-       <td align="center" width="70%"> 
-         
-             <!-- tabella tab4 per la cella centrale, cui segue tab5 -->  
-            <table id="panno" class="green" >                         
-                 <tr>
-                   <td colspan="3" align="center" >                                      
-                      <img id="retroround" />              
-                       <img id="round" />
-                    </td>   
-                  </tr>   
-                <tr>             
-                   <td align="center" width="37.5%"  >
-                      <div id="Estraz1" class="retros" ></div>
-                    </td> 
-                    <td align="center" width="25%" >   <!--width="30%" > -->                     
-                       <div id="ammazzo">
-                         <center><img name="mazzo" id="mazzos" onclick="estrai()" onmouseover="selcard(0)" onmouseout="deselcard(0)"/> </center>
-                         <img id="logos"> 
-                       </div>
-                    </td>
-                    <td align="center" width="37.5%">  <!--width="20%">-->
-                      <div id="Estraz3" class="retros"></div>
-                    </td> 
-                 </tr>
-             </table> <!-- chiude tab4 -->
-          
-             <table width="100%" style="table-layout: fixed;"> <!--tab5 dentro tab2 come tab4 precedente-->
-               <tr>   
-                 <td width="20%">                  
-                    <img id="estr_win"/>
-                    <a class="plname2" id="estratte"></a><br>                     
-                   </td> 
-                   <td width="30%" style="white-space: nowrap;" align="center"> 
-                     <!-- <div style="z-index: 2;width: 25%; float: left; display: block;"> -->
-                     <img id="youestraz"/>      
-                   </td> 
-                  <td  width="20%" style="white-space: nowrap;"></td>  
-              </tr>                          
-             </table> <!-- chiude tab5 -->
-         
-           </td> <!--chiusura cella centrale di tab2 -->
-                                        
-       <td align="right" width="15%" id="rgtd"> <!--terza cella di tab2 -->
-          <br><br><br>
-          <div id="Player3">
-           <img name="pl4_1" class="retro" /> <br> <br>
-           <img name="pl4_2" class="retro" /> <br> <br>
-           <img name="pl4_3" class="retro" /> <br> <br>
-           <img name="pl4_4" class="retro" /> <br>
-           <br><div id="RG" class="plname">&delta;elta</div>
-          </div>     
-        </td> 
-     </tr>  <!--chiusura riga di tab2 -->
-</table> <!-- chiusura tabella 2 intera fascia centrale con 3 td (15-70-15) -->
-  
-<table height="20%" width="100%" > <!-- tab3 -->
+    </tr>
+</table>
+
+<table height="60%" width="100%">
     <tr>
-        <td align="center"  width="100%" height="30%" id="youtd" > <br><br>                            
-           <img name="plx1" width="90" height="120" onclick="sostituzione(1)" style="border-radius: 7px;display:inline-block;" onmouseover="selcard(1)" onmouseout="deselcard(1)" id="idplx1">        
-           <img name="plx2" width="90" height="120" onclick="sostituzione(2)" style="border-radius: 7px;display:inline-block;" onmouseover="selcard(2)" onmouseout="deselcard(2)" id="idplx2">          
-           <img name="plx3" width="90" height="120" onclick="sostituzione(3)" style="border-radius: 7px;" onmouseover="selcard(3)" onmouseout="deselcard(3)" id="idplx3">          
-           <img name="plx4" width="90" height="120" onclick="sostituzione(4)" style="border-radius: 7px;" onmouseover="selcard(4)" onmouseout="deselcard(4)" id="idplx4">                              [...]
-           <!-- <div id="YOU" class="plname">&alpha;lpha</div> -->
-           <a id="YOU" class="plname" style="margin-left: 1%;margin-top:2.5%; position: absolute;">&alpha;lpha</a> 
-        </td> 
-     </tr>     
-</table> 
-  
-  <div id="overlay" >
-  <div id="finestra">                                                            
-    <div id="engl"> 
-       <input type="button" value="R e s t a r t" onclick="window.open('/nineteen10/nineteen-10.htm','_top')" id="endwind"> 
-       <input type="button" value="C l o s e" onmousedown="toggle()" id="endwind2">      
-     </div> 
-     <div class="caption">
-      <img id="thewin" alt="" />      
-      <span id="end"></span><br><br>
-      <span id="classifica"> </span> <br>              
-        <span id="classifica1"> </span> <br>
-          <span id="classifica2"> </span> <br>
-            <span id="classifica3"> </span> <br>
-              <span id="classifica4"> </span>       
-      </span>
-    </div>                                                        
-  </div>             
-</div>  
-  
+        <td id="lgtd" height="60%">
+            <br><br><br>
+            <div id="Player1" style="display:block;">
+                <img name="pl2_1" class="retro"/><br><br>
+                <img name="pl2_2" class="retro"/><br><br>
+                <img name="pl2_3" class="retro"/><br><br>
+                <img name="pl2_4" class="retro"/><br><br>
+                <div id="LG" class="plname">&beta;eta</div>
+            </div>
+        </td>
+        <td align="center" width="70%">
+            <table id="panno" class="green">
+                <tr>
+                    <td colspan="3" align="center">
+                        <img id="retroround" />
+                        <img id="round" />
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" width="37.5%">
+                        <div id="Estraz1" class="retros"></div>
+                    </td>
+                    <td align="center" width="25%">
+                        <div id="ammazzo">
+                            <center><img name="mazzo" id="mazzos" onclick="estrai()" onmouseover="selcard(0)" onmouseout="deselcard(0)" /></center>
+                            <img id="logos">
+                        </div>
+                    </td>
+                    <td align="center" width="37.5%">
+                        <div id="Estraz3" class="retros"></div>
+                    </td>
+                </tr>
+            </table>
+            <table width="100%" style="table-layout: fixed;">
+                <tr>
+                    <td width="20%">
+                        <img id="estr_win" />
+                        <a class="plname2" id="estratte"></a><br>
+                    </td>
+                    <td width="30%" style="white-space: nowrap;" align="center">
+                        <img id="youestraz" />
+                    </td>
+                    <td width="20%" style="white-space: nowrap;"></td>
+                </tr>
+            </table>
+        </td>
+        <td align="right" width="15%" id="rgtd">
+            <br><br><br>
+            <div id="Player3">
+                <img name="pl4_1" class="retro" /><br><br>
+                <img name="pl4_2" class="retro" /><br><br>
+                <img name="pl4_3" class="retro" /><br><br>
+                <img name="pl4_4" class="retro" /><br><br>
+                <div id="RG" class="plname">&delta;elta</div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<table height="20%" width="100%">
+    <tr>
+        <td align="center" width="100%" height="30%" id="youtd"><br><br>
+            <img name="plx1" width="90" height="120" onclick="sostituzione(1)" style="border-radius:7px;display:inline-block;" onmouseover="selcard(1)" onmouseout="deselcard(1)" id="idplx1">
+            <img name="plx2" width="90" height="120" onclick="sostituzione(2)" style="border-radius:7px;display:inline-block;" onmouseover="selcard(2)" onmouseout="deselcard(2)" id="idplx2">
+            <img name="plx3" width="90" height="120" onclick="sostituzione(3)" style="border-radius:7px;" onmouseover="selcard(3)" onmouseout="deselcard(3)" id="idplx3">
+            <img name="plx4" width="90" height="120" onclick="sostituzione(4)" style="border-radius:7px;" onmouseover="selcard(4)" onmouseout="deselcard(4)" id="idplx4">
+            <a id="YOU" class="plname" style="margin-left:1%;margin-top:2.5%;position:absolute;">&alpha;lpha</a>
+        </td>
+    </tr>
+</table>
+
+<div id="overlay">
+    <div id="finestra">
+        <div id="engl">
+            <input type="button" value="R e s t a r t" onclick="window.open('/nineteen10/nineteen-10.htm','_top')" id="endwind">
+            <input type="button" value="C l o s e" onmousedown="toggle()" id="endwind2">
+        </div>
+        <div class="caption">
+            <img id="thewin" alt="" />
+            <span id="end"></span><br><br>
+            <span id="classifica"> </span><br>
+            <span id="classifica1"> </span><br>
+            <span id="classifica2"> </span><br>
+            <span id="classifica3"> </span><br>
+            <span id="classifica4"> </span>
+        </div>
+    </div>
+</div>
 </body>
 </html>
