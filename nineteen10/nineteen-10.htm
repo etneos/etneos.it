@@ -1,6 +1,7 @@
 <html>
 <head>  
 <meta name="viewport" content="width=device-width, initial-scale=0.7"/>
+<base href="/nineteen10/">
 <link rel="stylesheet" href="mobstyle.css">   
 <script>    
 function isMobile() {     
@@ -65,8 +66,8 @@ if (isFirefox()) {
      return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
    }
  function redirectToMobile() {
-     if (!isMobile()) {       
-       window.location.href = "nineteen10.htm";  
+     if (!isMobile()) {
+       window.location.href = "/nineteen10/nineteen-10.htm";  
      }
    }   
  window.addEventListener('load', redirectToMobile);
@@ -177,7 +178,7 @@ if (isFirefox()) {
            <img name="plx1" width="90" height="120" onclick="sostituzione(1)" style="border-radius: 7px;display:inline-block;" onmouseover="selcard(1)" onmouseout="deselcard(1)" id="idplx1">        
            <img name="plx2" width="90" height="120" onclick="sostituzione(2)" style="border-radius: 7px;display:inline-block;" onmouseover="selcard(2)" onmouseout="deselcard(2)" id="idplx2">          
            <img name="plx3" width="90" height="120" onclick="sostituzione(3)" style="border-radius: 7px;" onmouseover="selcard(3)" onmouseout="deselcard(3)" id="idplx3">          
-           <img name="plx4" width="90" height="120" onclick="sostituzione(4)" style="border-radius: 7px;" onmouseover="selcard(4)" onmouseout="deselcard(4)" id="idplx4">                                                                        
+           <img name="plx4" width="90" height="120" onclick="sostituzione(4)" style="border-radius: 7px;" onmouseover="selcard(4)" onmouseout="deselcard(4)" id="idplx4">                              [...]
            <!-- <div id="YOU" class="plname">&alpha;lpha</div> -->
            <a id="YOU" class="plname" style="margin-left: 1%;margin-top:2.5%; position: absolute;">&alpha;lpha</a> 
         </td> 
@@ -187,7 +188,7 @@ if (isFirefox()) {
   <div id="overlay" >
   <div id="finestra">                                                            
     <div id="engl"> 
-       <input type="button" value="R e s t a r t" onclick="window.open('nineteen-10.htm','_top')" id="endwind"> 
+       <input type="button" value="R e s t a r t" onclick="window.open('/nineteen10/nineteen-10.htm','_top')" id="endwind"> 
        <input type="button" value="C l o s e" onmousedown="toggle()" id="endwind2">      
      </div> 
      <div class="caption">

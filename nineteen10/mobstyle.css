@@ -294,5 +294,13 @@
   border-radius: 7px;
   position: relative;
   /*z-index: 1; */
-  content: url("img/retrok.png");
+  /* Keep the back as a background so setting the image's src can reveal a drawn card. */
+  content: normal;
+  background: url("img/retrok.png") no-repeat center / 100% 100%;
+}
+
+/* Keep the right-hand player's cards within the green table image. */
+#Player3 {
+  position: relative;
+  right: 12px;
 }
